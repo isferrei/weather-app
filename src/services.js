@@ -12,9 +12,9 @@ export function getNextDaysWeather(lat, lon) {
   );
 }
 
-export function getPrevDaysWeather(lat, lon) {
+export function getPrevDaysWeather(lat, lon, date) {
   return axios.get(
-    `https://api.openweathermap.org/data/2.5/history/city?lat=${lat}&lon=${lon}&start=1369728000&cnt=5&appid=bfe3f939557c90ad20942db01f39b179`
+    `https://api.openweathermap.org/data/2.5/onecall/timemachine?lat=${lat}&lon=${lon}&dt=${date}&units=metric&appid=bfe3f939557c90ad20942db01f39b179`
   );
 }
 

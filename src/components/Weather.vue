@@ -8,6 +8,7 @@
       v-model="city"
       @keypress="onGetWeather"
     />
+    <h5 v-if="loading">LOADING...</h5>
     <div class="info-card" v-if="weather">
       <h5>{{ weather.name }}, {{ weather.sys.country }}</h5>
       <h2>{{ weather.weather[0].main }}</h2>
@@ -37,21 +38,24 @@
         </h5>
       </div>
     </div>
-    <h3>Last 5 days:</h3>
+    <h5 v-if="loading_next_days">LOADING...</h5>
+    <h3 v-if="next_weather">Next 7 days:</h3>
     <div class="next-weather-section">
       <div
         :key="weather.id"
         v-for="weather in next_weather"
         class="weather-days-card"
       >
-        {{ Math.round(weather.temp.day) }}°C
+        <h5>
+          {{ weather.weather[0].main }} {{ Math.round(weather.temp.day) }}°C
+        </h5>
       </div>
     </div>
-    <h3>Next 7 days:</h3>
+    <h3 v-if="next_weather">Last 5 days:</h3>
     <div class="next-weather-section">
       <div
         :key="weather.id"
-        v-for="weather in next_weather"
+        v-for="weather in prev_weather"
         class="weather-days-card"
       >
         {{ Math.round(weather.temp.day) }}°C
@@ -78,17 +82,17 @@ export default {
       next_weather: null,
       prev_weather: null,
       date: "",
+      loading: false,
+      loading_next_days: false,
     };
   },
   created() {
     navigator.geolocation.getCurrentPosition((position) => {
-      console.log(position.coords.latitude);
-      console.log(position.coords.longitude);
       getCurrentLocation(
         position.coords.latitude,
         position.coords.longitude
       ).then((res) => {
-        console.log("LOCATION", res);
+        this.city = res.data.results[0].address_components[3].long_name;
       });
     });
   },
@@ -96,20 +100,26 @@ export default {
     async onGetWeather(e) {
       const city = this.city;
       if (e.key == "Enter") {
+        this.loading = true;
         await getWeather(city).then((res) => {
           this.weather = res.data;
-
-          console.log("weather", res);
         });
+        if (this.weather) {
+          this.loading = false;
+        }
+        this.loading_next_days = true;
         const lat = this.weather.coord.lat;
         const lon = this.weather.coord.lon;
         await getNextDaysWeather(lat, lon).then((res) => {
           this.next_weather = res.data.daily;
-          console.log("7 days weather", res);
+          if (this.next_weather) {
+            this.loading_next_days = false;
+          }
         });
 
-        await getPrevDaysWeather(lat, lon).then((res) => {
-          this.prev_weather = 1639843950;
+        const date = 1640062147;
+        await getPrevDaysWeather(lat, lon, date).then((res) => {
+          this.prev_weather = res.data.current;
           console.log("5 days weather", res);
         });
       }
@@ -158,6 +168,14 @@ button {
   height: auto;
   padding: 15px;
 }
+@media only screen and (max-width: 600px) {
+  .info-card {
+    width: 80%;
+  }
+  input {
+    height: 40px;
+  }
+}
 .max-min-temp {
   display: flex;
   flex-direction: column;
@@ -165,8 +183,9 @@ button {
   width: 80%;
 }
 .next-weather-section {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 95px);
+  row-gap: 20px;
   margin: 0 auto;
   justify-content: space-evenly;
   width: 80%;
