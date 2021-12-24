@@ -125,13 +125,10 @@ export default {
             new Date(new Date().setDate(new Date().getDate() - i)) / 1000
           );
 
-          console.log(this.days_ago);
           await getPrevDaysWeather(lat, lon, this.days_ago).then((res) => {
             this.prev_weather.push(res.data.current);
           });
         }
-        console.log("5 days weather", this.prev_weather);
-        console.log("7 days weather", this.next_weather);
       }
     },
   },
