@@ -51,14 +51,14 @@
         </h5>
       </div>
     </div>
-    <h3 v-if="next_weather">Last 5 days:</h3>
+    <h3 v-if="prev_weather">Last 5 days:</h3>
     <div class="next-weather-section">
       <div
         :key="weather.id"
         v-for="weather in prev_weather"
         class="weather-days-card"
       >
-        {{ Math.round(weather.temp.day) }}°C
+        <h5>{{ weather.weather[0].main }} {{ Math.round(weather.temp) }}°C</h5>
       </div>
     </div>
   </div>
@@ -80,10 +80,11 @@ export default {
       details: false,
       weather: null,
       next_weather: null,
-      prev_weather: null,
       date: "",
       loading: false,
       loading_next_days: false,
+      days_ago: null,
+      prev_weather: null,
     };
   },
   created() {
@@ -117,11 +118,20 @@ export default {
           }
         });
 
-        const date = 1640062147;
-        await getPrevDaysWeather(lat, lon, date).then((res) => {
-          this.prev_weather = res.data.current;
-          console.log("5 days weather", res);
-        });
+        this.prev_weather = [];
+
+        for (var i = 1; i <= 5; i++) {
+          this.days_ago = Math.round(
+            new Date(new Date().setDate(new Date().getDate() - i)) / 1000
+          );
+
+          console.log(this.days_ago);
+          await getPrevDaysWeather(lat, lon, this.days_ago).then((res) => {
+            this.prev_weather.push(res.data.current);
+          });
+        }
+        console.log("5 days weather", this.prev_weather);
+        console.log("7 days weather", this.next_weather);
       }
     },
   },

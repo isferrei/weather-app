@@ -24,4 +24,7 @@ export default {
   color: #fff;
   height: 100vh;
 }
+body {
+  margin: 0;
+}
 </style>
